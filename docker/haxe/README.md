@@ -7,7 +7,7 @@ This image is optimized for Haxe JavaScript compilation in CI/CD pipelines and i
 
 - Haxe Version: 4.2.5
 - NodeJs Version: 20.11.1
-- Size: 57.34 MB (lighter than the official image)
+- Size: 57.34 MB
 
 ## Purpose
 
