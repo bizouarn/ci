@@ -1,0 +1,13 @@
+image: mcr.microsoft.com/dotnet/sdk:8.0
+stages:
+  - deploy
+deploy:
+  stage: deploy
+  script:
+    - dotnet nuget add source "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json" --name gitlab-ci --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
+    - dotnet build --configuration Release
+    - dotnet pack -p:Version=${CI_COMMIT_TAG}
+    - dotnet nuget push bin/Release/*.nupkg --source gitlab-ci
+  only:
+    - tags
+  allow_failure: true
