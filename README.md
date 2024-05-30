@@ -46,7 +46,7 @@ include:
 
 ### GitHub Actions
 
-For GitHub Actions, reference the templates in your workflow files located in the `.github/workflows` directory:\n\n
+For GitHub Actions, reference the templates in your workflow files located in the `.github/workflows` file:
 ```yaml
 name: CI Pipeline
 on: [push, pull_request]
