@@ -1,0 +1,73 @@
+variables:
+  PROJECT_PATH: "."  # Chemin du projet .NET à builder
+  OUTPUT_PATH: "bin/Release/*.nupkg"  # Chemin de sortie du package NuGet
+  NUGET_SOURCE: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json"
+  NUGET_NAME: "gitlab-ci"
+  DOTNET_CONFIGURATION: "Release"  # Configuration par défaut pour build et pack
+  NUGET_VERSION: "${CI_COMMIT_TAG}"  # Version par défaut basée sur le tag
+
+.deploy_template:
+  stage: deploy
+  script:
+    # Ajout du source NuGet à partir de GitLab
+    - dotnet nuget add source "$NUGET_SOURCE" --name "$NUGET_NAME" --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
+    # Build du projet
+    - dotnet build "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION"
+    # Pack du projet en NuGet
+    - dotnet pack "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION" -p:Version="$NUGET_VERSION" -o "$OUTPUT_PATH"
+    # Push du package NuGet vers le dépôt GitLab NuGet
+    - dotnet nuget push "$OUTPUT_PATH/*.nupkg" --source "$NUGET_NAME"
+  only:
+    - tags  # Exécuter ce job uniquement lors de la création d'un tag
+  artifacts:
+    paths:
+      - "$OUTPUT_PATH/*.nupkg"
+
+variables:
+  PROJECT_PATH: "."  # Chemin du projet à builder
+  OUTPUT_PATH: "bin/Release"  # Chemin de sortie des packages NuGet
+  DOTNET_CHANNEL: "8.0"  # Version de .NET à installer
+  DOTNET_CONFIGURATION: "Release"  # Configuration de build
+  NUGET_SOURCE: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json"
+  NUGET_NAME: "gitlab-ci"
+  NUGET_VERSION: "${CI_COMMIT_TAG}"  # Version NuGet par défaut basée sur le tag
+
+.deploy_windows_template:
+  stage: deploy
+  tags:
+    - saas-windows-medium-amd64
+  before_script:
+    # Télécharger et installer la version spécifiée de .NET
+    - Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
+    - ./dotnet-install.ps1 -Channel "$DOTNET_CHANNEL"
+  script:
+    # Ajouter la source NuGet à partir de GitLab
+    - dotnet nuget add source "$NUGET_SOURCE" --name "$NUGET_NAME" --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
+    # Build du projet
+    - dotnet build "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION"
+    # Pack du projet en NuGet
+    - dotnet pack "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION" -p:Version="$NUGET_VERSION"
+    # Se déplacer dans le répertoire de build et publier le package NuGet
+    - cd "$OUTPUT_PATH"
+    - dotnet nuget push *.nupkg --source "$NUGET_NAME"
+  only:
+    - tags
+  artifacts:
+    paths:
+      - "$OUTPUT_PATH/*.nupkg"
+
+#include:
+#  - project: 'bizouarn/ci'
+#    ref: main
+#    file: '/gitlab/template/dotnet8-nuget-deploy.gitlab-ci.yml'
+#
+#variables:
+#  PROJECT_PATH: "src/MySpecificProject"  # Chemin spécifique à ton projet
+#  OUTPUT_PATH: "artifacts"  # Répertoire de sortie personnalisé
+#
+#deploy:
+#  extends: .deploy_template
+#  script:
+#    # Étape spécifique à ce projet (en plus du script du template)
+#    - echo "Exécution d'étapes supplémentaires spécifiques à ce projet"
+#    - dotnet publish "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION"
