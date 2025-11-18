@@ -16,7 +16,7 @@ variables:
     # Build du projet
     - dotnet build "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION"
     # Pack du projet en NuGet
-    - dotnet pack "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION" -p:Version="$NUGET_VERSION"
+    - dotnet pack "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION" -p:Version="$NUGET_VERSION" --no-build
     # Push du package NuGet vers le dépôt GitLab NuGet
     - dotnet nuget push "$OUTPUT_PATH" --source "$NUGET_NAME"
   only:
@@ -33,14 +33,14 @@ variables:
     - ./dotnet-install.ps1 -Channel "$DOTNET_CHANNEL"
     - $OUTPUT_PATH = $OUTPUT_PATH -replace '/', '\'
     - $PROJECT_PATH = $PROJECT_PATH -replace '/', '\'
-    - $FULL_OUTPUT_PATH = Join-Path -Path $PWD.Path -ChildPath $OUTPUT_PATH
+    - $FULL_OUTPUT_PATH = Join-Path -Path (Join-Path -Path $PWD.Path -ChildPath $PROJECT_PATH) -ChildPath $OUTPUT_PATH
   script:
     # Ajouter la source NuGet à partir de GitLab
     - dotnet nuget add source "$NUGET_SOURCE" --name "$NUGET_NAME" --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
     # Build du projet
     - dotnet build "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION"
     # Pack du projet en NuGet
-    - dotnet pack "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION" -p:Version="$NUGET_VERSION"
+    - dotnet pack "$PROJECT_PATH" --configuration "$DOTNET_CONFIGURATION" -p:Version="$NUGET_VERSION" --no-build
     # Se déplacer dans le répertoire de build et publier le package NuGet
     - dotnet nuget push "$FULL_OUTPUT_PATH" --source "$NUGET_NAME"
   only:
