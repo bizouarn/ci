@@ -30,7 +30,7 @@ variables:
     # Télécharger et installer la version spécifiée de .NET
     - Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1"
     # Corrige les variables pour windows
-    - ./dotnet-install.ps1 -Channel "$DOTNET_CHANNEL"
+    - $DOTNET_CHANNEL -split ";" | ForEach-Object { ./dotnet-install.ps1 -Channel $_ }
     - $OUTPUT_PATH = $OUTPUT_PATH -replace '/', '\'
     - $PROJECT_PATH = $PROJECT_PATH -replace '/', '\'
     - $FULL_OUTPUT_PATH = Join-Path -Path (Join-Path -Path $PWD.Path -ChildPath $PROJECT_PATH) -ChildPath $OUTPUT_PATH
