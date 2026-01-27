@@ -11,6 +11,8 @@ variables:
 .deploy_nuget_template:
   stage: deploy
   script:
+    # Création du nuget.config dans PROJECT_PATH si la variable existe
+    - if [ -n "$NUGET_CONFIG" ]; then echo "$NUGET_CONFIG" | base64 -d > "$PROJECT_PATH/nuget.config"; fi
     # Ajout du source NuGet à partir de GitLab
     - dotnet nuget add source "$NUGET_SOURCE" --name "$NUGET_NAME" --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
     # Build du projet
@@ -34,6 +36,9 @@ variables:
     - $OUTPUT_PATH = $OUTPUT_PATH -replace '/', '\'
     - $PROJECT_PATH = $PROJECT_PATH -replace '/', '\'
     - $FULL_OUTPUT_PATH = Join-Path -Path (Join-Path -Path $PWD.Path -ChildPath $PROJECT_PATH) -ChildPath $OUTPUT_PATH
+    # Création du nuget.config si la variable existe (PowerShell)
+    - $CONFIG_FILE_PATH = Join-Path -Path $PROJECT_PATH -ChildPath "nuget.config"
+    - if ($NUGET_CONFIG) { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($NUGET_CONFIG)) | Out-File -FilePath $CONFIG_FILE_PATH -Encoding utf8 }
   script:
     # Ajouter la source NuGet à partir de GitLab
     - dotnet nuget add source "$NUGET_SOURCE" --name "$NUGET_NAME" --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
