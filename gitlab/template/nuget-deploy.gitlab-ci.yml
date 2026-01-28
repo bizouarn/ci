@@ -1,7 +1,5 @@
 variables:
   FF_USE_FASTZIP: "true"         # Active l'outil de compression rapide de GitLab
-  ARTIFACT_COMPRESSION_LEVEL: "fastest" # Réduit le temps processeur pour le zip
-  CACHE_COMPRESSION_LEVEL: "fastest"
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_NOLOGO: "true"
   PROJECT_PATH: "."  # Chemin du projet .NET à builder
@@ -32,15 +30,10 @@ variables:
 .windows_dotnet_setup:
   tags:
     - saas-windows-medium-amd64
-  cache:
-    key: "dotnet-sdk-$DOTNET_CHANNEL"
-    paths:
-      - .dotnet/
-      - dotnet-install.ps1
   before_script:
     # Télécharger et installer la version spécifiée de .NET
     - if (!(Test-Path "dotnet-install.ps1")) { Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1" }
-    - $DOTNET_CHANNEL -split ";" | ForEach-Object { ./dotnet-install.ps1 -Channel $_ -InstallDir ".dotnet" }
+    - $DOTNET_CHANNEL -split ";" | ForEach-Object { ./dotnet-install.ps1 -Channel $_ }
     # Normalisation des chemins Windows
     - $OUTPUT_PATH = $OUTPUT_PATH -replace '/', '\'
     - $PROJECT_PATH = $PROJECT_PATH -replace '/', '\'
