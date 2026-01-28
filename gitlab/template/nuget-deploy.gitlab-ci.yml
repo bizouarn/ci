@@ -29,8 +29,7 @@ variables:
   only:
     - tags
 
-.deploy_nuget_windows_template:
-  stage: deploy
+.windows_dotnet_setup:
   tags:
     - saas-windows-medium-amd64
   cache:
@@ -41,14 +40,19 @@ variables:
   before_script:
     # Télécharger et installer la version spécifiée de .NET
     - if (!(Test-Path "dotnet-install.ps1")) { Invoke-WebRequest -Uri "https://dot.net/v1/dotnet-install.ps1" -OutFile "dotnet-install.ps1" }
-    # Corrige les variables pour windows
     - $DOTNET_CHANNEL -split ";" | ForEach-Object { ./dotnet-install.ps1 -Channel $_ -InstallDir ".dotnet" }
+    # Normalisation des chemins Windows
     - $OUTPUT_PATH = $OUTPUT_PATH -replace '/', '\'
     - $PROJECT_PATH = $PROJECT_PATH -replace '/', '\'
     - $FULL_OUTPUT_PATH = Join-Path -Path (Join-Path -Path $PWD.Path -ChildPath $PROJECT_PATH) -ChildPath $OUTPUT_PATH
-    # Création du nuget.config si la variable existe (PowerShell)
+    # Création du nuget.config si présent
     - $CONFIG_FILE_PATH = Join-Path -Path $PROJECT_PATH -ChildPath "nuget.config"
     - if ($NUGET_CONFIG) { [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($NUGET_CONFIG)) | Out-File -FilePath $CONFIG_FILE_PATH -Encoding utf8 }
+
+.deploy_nuget_windows_template:
+  stage: deploy
+  extends:
+    - .windows_dotnet_setup
   script:
     # Ajouter la source NuGet à partir de GitLab
     - dotnet nuget add source "$NUGET_SOURCE" --name "$NUGET_NAME" --username gitlab-ci-token --password $CI_JOB_TOKEN --store-password-in-clear-text
