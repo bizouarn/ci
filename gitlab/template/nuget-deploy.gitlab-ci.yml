@@ -3,13 +3,13 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_NOLOGO: "true"
   PROJECT_PATH: "."  # Chemin du projet .NET à builder
-  OUTPUT_PATH: "bin/Release/*.nupkg"  # Chemin de sortie du package NuGet
+  OUTPUT_PATH: "bin/Release/*${CI_COMMIT_TAG}.nupkg"  # Chemin de sortie du package NuGet
   NUGET_SOURCE: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/nuget/index.json"
   NUGET_NAME: "gitlab-ci"
   DOTNET_CONFIGURATION: "Release"  # Configuration par défaut pour build et pack
   NUGET_VERSION: "${CI_COMMIT_TAG}"  # Version par défaut basée sur le tag
   # windows
-  DOTNET_CHANNEL: "8.0"
+  DOTNET_CHANNEL: "8.0;10.0"
 
 .deploy_nuget_template:
   stage: deploy
