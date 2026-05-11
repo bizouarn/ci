@@ -1,2 +1,2 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-COPY --from=mcr.microsoft.com/dotnet/sdk:8.0 /usr/share/dotnet/shared /usr/share/dotnet/shared
+FROM dhi.io/dotnet:10-sdk-alpine3.23 AS build
+COPY --from=dhi.io/dotnet:8-sdk-alpine3.23 /usr/lib/dotnet/shared /usr/lib/dotnet/shared
